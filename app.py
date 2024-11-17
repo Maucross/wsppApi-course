@@ -74,8 +74,32 @@ def verificar_token(req):
 def recibir_mensajes(req):
     req = request.get_json()
     agregar_mensajes_log(req)
-    
-    return jsonify({'message':'EVENT_RECEIVED'})
+    try:
+        req = request.get_json()
+        entry = req['entry'][0]
+        changes = entry['changes'][0]
+        value = changes['value']
+        objeto_mensaje = value['message']
+
+        if objeto_mensaje:
+            messages = objeto_mensaje[0]
+
+            if "type" in messages:
+                tipo = messages["type"]
+                if tipo == "interactive":
+                    return 0
+            if "text" in messages:
+                text = messages["text"]["body"]
+                numero = messages["from"]
+                agregar_mensajes_log(json.dumps(text))
+                agregar_mensajes_log(json.dumps(numero))                
+
+        # agregar_mensajes_log(json.dumps(objeto_mensaje))
+        
+
+        return jsonify({'message':'EVENT_RECEIVED'})
+    except Exception as e:
+        return jsonify({'message':'EVENT_RECEIVED'})
 
 if __name__=='__main__':
     app.run(host='0.0.0.0',port=80,debug=True)
